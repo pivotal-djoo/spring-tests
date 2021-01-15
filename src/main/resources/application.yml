@@ -1,0 +1,27 @@
+server:
+  port: 9292
+
+logging:
+  level:
+    com.djoo.testingwithspock: TRACE
+
+spring:
+  application:
+    name: spring-tests
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+  cloud:
+    stream:
+      bindings:
+        NotesEventListener-in-0:
+          destination: consumer-topic
+          contentType: application/json
+          group: consumer-queue
+        NotesEventPublisher-out-0:
+          destination: publisher-topic
+          contentType: application/json
+    function:
+      definition: "NotesEventListener"
