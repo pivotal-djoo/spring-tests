@@ -9,3 +9,5 @@
 [NotesControllerTest.java - MockMvc](src/test/java/com/djoo/springtests/apis/NotesControllerTest.java)
 
 [NotesControllerWebTestClientTest - Using WebTestClient](src/test/java/com/djoo/springtests/apis/NotesControllerWebTestClientTest.java)
+
+[NotesIntegrationTest](src/test/java/com/djoo/springtests/integration/NotesIntegrationTest.java)
