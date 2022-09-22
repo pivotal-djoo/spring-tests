@@ -29,6 +29,8 @@ public class NotesClient {
                         .path("/notes")
                         .build()
                         .toUri())
+                .bodyValue(note)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .retrieve()
                 .bodyToMono(Note.class)
                 .block();

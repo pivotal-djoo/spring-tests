@@ -3,80 +3,77 @@ package com.djoo.springtests.clients;
 import com.djoo.springtests.models.Note;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
 
-import java.io.IOException;
 import java.util.List;
 
+import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.okForJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@WireMockTest()
 class NotesClientTest {
-    public static MockWebServer mockWebServer;
-    private ObjectMapper objectMapper = new ObjectMapper();
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private WireMock wireMock;
     private NotesClient subject;
 
-    @BeforeAll
-    static void setUp() throws IOException {
-        mockWebServer = new MockWebServer();
-        mockWebServer.start();
-    }
-
     @BeforeEach
-    void initialize() {
-        String baseUrl = String.format("http://localhost:%s",
-                mockWebServer.getPort());
-        subject = new NotesClient(baseUrl);
+    void setUp(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        wireMock = wireMockRuntimeInfo.getWireMock();
+        subject = new NotesClient(wireMockRuntimeInfo.getHttpBaseUrl());
     }
 
     @Test
-    void createNote_makesPostRequestToApi() throws JsonProcessingException, InterruptedException {
+    void createNote_makesPostRequestToApi() throws JsonProcessingException {
         Note note = Note.builder()
                 .text("note 1")
                 .build();
 
-        mockWebServer.enqueue(new MockResponse()
-                .setBody(objectMapper.writeValueAsString(note))
-                .setHeader("Content-Type", "application/json")
-        );
+        stubFor(post(anyUrl())
+                .willReturn(okForJson(note)
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withStatus(201)));
 
         Note actualNote = subject.createNote(note);
 
-        RecordedRequest recordedRequest = mockWebServer.takeRequest();
+        wireMock.verifyThat(postRequestedFor(urlPathEqualTo("/notes"))
+                .withHeader(HttpHeaders.CONTENT_TYPE, equalTo(MediaType.APPLICATION_JSON_VALUE))
+                .withRequestBody(equalToJson(objectMapper.writeValueAsString(note))));
 
-        assertThat(recordedRequest.getMethod()).isEqualTo("POST");
-        assertThat(recordedRequest.getPath()).isEqualTo("/notes");
         assertThat(actualNote).isEqualTo(note);
     }
 
     @Test
-    void getNotes_makesPostRequestToApi() throws JsonProcessingException, InterruptedException {
+    void getNotes_makesGetRequestToApi() {
         List<Note> notes = asList(
                 Note.builder().text("notes 1").build(),
                 Note.builder().text("notes 2").build());
 
-        mockWebServer.enqueue(new MockResponse()
-                .setBody(objectMapper.writeValueAsString(notes))
-                .setHeader("Content-Type", "application/json")
-        );
+        stubFor(get(anyUrl())
+                .willReturn(okForJson(notes)
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withStatus(200)));
 
         List<Note> actualNotes = subject.getNotes();
 
-        RecordedRequest recordedRequest = mockWebServer.takeRequest();
+        wireMock.verifyThat(getRequestedFor(urlPathEqualTo("/notes")));
 
-        assertThat(recordedRequest.getMethod()).isEqualTo("GET");
-        assertThat(recordedRequest.getPath()).isEqualTo("/notes");
         assertThat(actualNotes).isEqualTo(notes);
-    }
-
-    @AfterAll
-    static void tearDown() throws IOException {
-        mockWebServer.shutdown();
     }
 }

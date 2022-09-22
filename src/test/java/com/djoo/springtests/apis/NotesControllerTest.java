@@ -11,7 +11,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -25,14 +24,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest
-@ContextConfiguration(classes = NotesController.class)
+@WebMvcTest(controllers = NotesController.class)
 public class NotesControllerTest {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @MockBean
-    NotesService notesService;
+    private NotesService notesService;
 
     @Autowired
     private MockMvc mvc;
@@ -44,7 +42,7 @@ public class NotesControllerTest {
         when(notesService.getAllNotes()).thenReturn(notes);
 
         MockHttpServletResponse response = mvc.perform(get("/notes")
-                .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse();
@@ -64,9 +62,9 @@ public class NotesControllerTest {
         when(notesService.createNote(note)).thenReturn(note);
 
         mvc.perform(post("/notes")
-                .content(objectMapper.writeValueAsString(note))
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .accept(MediaType.APPLICATION_JSON_VALUE))
+                        .content(objectMapper.writeValueAsString(note))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isCreated())
                 .andExpect(content().json("{\"id\":null,\"text\":\"note 1\"}"));
 

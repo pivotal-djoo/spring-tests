@@ -3,9 +3,9 @@ package com.djoo.springtests;
 import com.djoo.springtests.messaging.NotesEventPublisher;
 import com.djoo.springtests.models.Note;
 import com.djoo.springtests.persistence.NotesRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -20,13 +20,17 @@ import static org.mockito.Mockito.when;
 public class NotesServiceTest {
 
     @Mock
-    private NotesRepository notesRepository;
+    private NotesRepository mockNotesRepository;
 
     @Mock
-    private NotesEventPublisher notesEventPublisher;
+    private NotesEventPublisher mockNotesEventPublisher;
 
-    @InjectMocks
     private NotesService subject;
+
+    @BeforeEach
+    void setUp() {
+        subject = new NotesService(mockNotesRepository, mockNotesEventPublisher);
+    }
 
     @Test
     public void getAllNotes_returnsAllNotes() {
@@ -34,7 +38,7 @@ public class NotesServiceTest {
                 Note.builder().text("note 1").build(),
                 Note.builder().text("note 2").build()
         );
-        when(notesRepository.findAll()).thenReturn(notes);
+        when(mockNotesRepository.findAll()).thenReturn(notes);
 
         List<Note> actualNotes = subject.getAllNotes();
         assertThat(actualNotes.size()).isEqualTo(2);
@@ -46,7 +50,7 @@ public class NotesServiceTest {
     public void newNote_savesNewNoteToRepository() {
         Note newNote = Note.builder().text("note 1").build();
         Note expectedSavedNote = Note.builder().id(1L).text(newNote.getText()).build();
-        when(notesRepository.save(newNote)).thenReturn(expectedSavedNote);
+        when(mockNotesRepository.save(newNote)).thenReturn(expectedSavedNote);
 
         Note savedNote = subject.createNote(newNote);
         assertThat(savedNote).isEqualTo(expectedSavedNote);
@@ -56,6 +60,6 @@ public class NotesServiceTest {
     void newNote_publishesNewNoteToAMQP() {
         Note newNote = Note.builder().text("note 1").build();
         subject.createNote(newNote);
-        verify(notesEventPublisher).publish(newNote);
+        verify(mockNotesEventPublisher).publish(newNote);
     }
 }

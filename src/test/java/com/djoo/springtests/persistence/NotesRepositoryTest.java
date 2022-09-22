@@ -1,19 +1,16 @@
 package com.djoo.springtests.persistence;
 
-import com.djoo.springtests.SpringTestsApplication;
 import com.djoo.springtests.models.Note;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@ContextConfiguration(classes = SpringTestsApplication.class)
 public class NotesRepositoryTest {
 
     @Autowired
