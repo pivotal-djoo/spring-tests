@@ -13,22 +13,20 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 public class NotesServiceTest {
 
-    @Mock
     private NotesRepository mockNotesRepository;
-
-    @Mock
     private NotesEventPublisher mockNotesEventPublisher;
-
     private NotesService subject;
 
     @BeforeEach
     void setUp() {
+        mockNotesRepository = mock(NotesRepository.class);
+        mockNotesEventPublisher = mock(NotesEventPublisher.class);
         subject = new NotesService(mockNotesRepository, mockNotesEventPublisher);
     }
 
